@@ -1,12 +1,14 @@
+#!/usr/bin/env node
 import inquirer from "inquirer";
 const welcome = () => {
     console.log("Welcome to Calculator");
-    return new Promise((res => {
-        setTimeout(res, 2000);
-    }));
+    return new Promise((resolve) => {
+        setTimeout(resolve, 2000);
+    });
 };
-await welcome();
+welcome();
 async function askQuestion() {
+    let extra_num = 0;
     const answers = await inquirer.prompt([
         {
             type: "number",
@@ -17,37 +19,50 @@ async function askQuestion() {
             type: "number",
             name: "num2",
             message: "Enter second number",
-        }
+        },
     ]);
+    let extra;
     do {
-        var answer = await inquirer.prompt([{
+        extra = await inquirer.prompt([
+            {
                 type: "input",
                 name: "restart",
-                message: "Do you want to add more input? press y for yes and n for no",
-            }]);
-        const extra = await inquirer.prompt([
-            {
-                type: "list",
-                name: "operation",
-                message: "Choose an operation",
-                choices: ["Add", "Subtract", "Multiply", "Divide"],
-            }
+                message: "Do you want to add more? press y for yes and n for no",
+            },
         ]);
-    } while (answer.restart == "Y" || answer.restart == "y");
-    switch (answers.operation) {
+        if (extra.restart.toLowerCase() === "y") {
+            const add_more = await inquirer.prompt([
+                {
+                    type: "number",
+                    name: "num",
+                    message: "Enter extra number",
+                },
+            ]);
+            extra_num += add_more.num;
+        }
+    } while (extra.restart.toLowerCase() === "y");
+    const operation = await inquirer.prompt({
+        type: "list",
+        name: "operation",
+        message: "Choose an operation",
+        choices: ["Add", "Subtract", "Multiply", "Divide"],
+    });
+    let result;
+    switch (operation.operation) {
         case "Add":
-            console.log(`${answers.num1} + ${answers.num2} = ${answers.num1 + answers.num2}`);
+            result = answers.num1 + answers.num2 + extra_num;
             break;
         case "Subtract":
-            console.log(`${answers.num1} - ${answers.num2} = ${answers.num1 - answers.num2}`);
+            result = answers.num1 - answers.num2 - extra_num;
             break;
         case "Multiply":
-            console.log(`${answers.num1} * ${answers.num2} = ${answers.num1 * answers.num2}`);
+            result = answers.num1 * answers.num2 * extra_num;
             break;
         case "Divide":
-            console.log(`${answers.num1} / ${answers.num2} = ${answers.num1 / answers.num2}`);
+            result = answers.num1 / answers.num2 / extra_num;
             break;
     }
+    console.log(`Result: ${result}`);
 }
 async function repeatedly() {
     do {
@@ -57,6 +72,6 @@ async function repeatedly() {
             name: "restart",
             message: "Do you want to continue? press y for yes and n for no",
         });
-    } while (again.restart == "y" || again.restart == "Y");
+    } while (again.restart.toLowerCase() === "y");
 }
 await repeatedly();
